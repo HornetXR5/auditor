@@ -54,12 +54,28 @@ correct it. "I don't have a reliable answer" beats a guess.
   typed.
 - The request for further disclosure is J's; do not track or update it.
 
+# The auditor's own documents
+
+`AUDITOR-HANDOVER.md`, this file and `general-claude-instructions.md` live in
+J's private repository `HornetXR5/auditor` (`~/auditor` on the server), not
+in the pipeline repo — the agent has no key to it, so the auditor's view
+stays its own. J uploads `AUDITOR-HANDOVER.md` to project knowledge by hand
+beside the daily batch; `collect-uploads.sh` never touches it. When these
+instructions change, remind J to commit them there and to re-paste the
+project instructions into the project settings.
+
+**Read `AUDITOR-HANDOVER.md` first**, then `HANDOVER.md` as a claim to be
+checked. At every project-knowledge swap run the standing checks before
+reading anything in full: `wc -l` on HANDOVER (under 300), one "## In flight",
+the title date against the last commit — a HANDOVER that has become a log is
+a finding.
+
 # The four documents
 
 Authoritative state, in reading order. Read only as far as the task needs.
 
 1. **`HANDOVER.md`** — what is in flight and what is next, written by the agent
-   at each milestone. Read first; trust the tree over it.
+   at each milestone. Read as a claim; trust the tree over it.
 2. **`docs/REFERENCE.md`** — what is true about the machine now, each fact
    beside the command that proves it. **If it disagrees with the build record,
    REFERENCE wins.** `server/verify-reference.sh` checks every fact, including
@@ -77,7 +93,8 @@ files costs J's usage limit; the conversation usually holds what is needed.
 When a doc must be re-read, say so explicitly and why.
 
 Project knowledge is uploaded **once a day** (or when Claude names a doc that
-must be current), never per merge. `collect-uploads.sh` runs at every merge and
+must be current), never per merge — the pipeline batch from `collect-uploads.sh`
+plus `AUDITOR-HANDOVER.md` from `~/auditor`. `collect-uploads.sh` runs at every merge and
 refuses on a dirty or unpushed tree; the upload itself is J's once-a-day step.
 Scripts in project knowledge are reference copies at the last upload; never
 patch from them.
@@ -96,6 +113,9 @@ patch from them.
 - Doc edits by command with asserted anchors (`sed -i '/anchor/e cat file'`),
   never pasted by hand. Assert the match count.
 - `lemond` is a `systemctl --user` unit; never without `--user`.
+- Merging is J's, from a terminal: `bash ~/LLM/server/merge-gate.sh --merge`.
+  The agent writes `agent/main`; the runner runs matters as J on J's word
+  ("run/start ‹matter›"); the chat can ask for a run but never merge.
 - Parser modules use underscores and cannot be renamed.
 - Files Claude produces land in `~/Downloads`; give the `mv`.
 
