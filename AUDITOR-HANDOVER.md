@@ -1,6 +1,6 @@
 # Auditor handover — Claude in the project chat
 
-Written 5 Sep 2026, refreshed 6 Sep, by the auditor chat, for the next auditor chat. This file is
+Written 5 Sep 2026, refreshed 7 Sep, by the auditor chat, for the next auditor chat. This file is
 **not in the repo** and the agent never reads it. It exists so this role starts
 from its own account, not the agent's. Read it before `HANDOVER.md`, and read
 `HANDOVER.md` as a claim to be checked, not a fact.
@@ -40,13 +40,26 @@ Before believing any figure the agent reports: which matter, which tree
 (`--out` or J's `run.sh`), which commit. Before accepting a gate change:
 which rows, which pages.
 
+**After every agent restart, resume or compaction** (and every model
+switch): J asks "what's in flight, and where did you read it?" The only
+acceptable answer names HANDOVER's In-flight block and says, item by item,
+still true or stale against the tree. An answer from `git status`, the
+process list or a sweep's CSV sounds current and is not a read — on 6 Sep
+the agent admitted exactly that, then found three stale items on reading.
+The SessionStart hook's injection is a prompt, not a read; CLAUDE.md now
+requires the first reply after a resume to quote In flight and check it.
+
 ## How J and the agent work now (as at 6 Sep)
 
-- Agent: Fable 5.1 at effort medium (default in `/home/agent/.claude/settings.json`
-  is Opus 5 / high), worktree `~/LLM-agent`, branch `agent/main`, fenced by
+- Agent: **Opus 5 at effort xhigh** (Fable's quota out until Wednesday; the
+  levels are low/medium/high/xhigh, plus session-only `max` and `ultracode`
+  — the latter is xhigh plus dynamic workflow orchestration, the fit for a
+  twice-weekly audit). Worktree `~/LLM-agent`, branch `agent/main`, fenced by
   ACLs and modes, pre-push hook refuses `main`. Three read-only sub-agents
   (gate-runner, corpus-differ, fixture-prover) on Sonnet. ntfy pings J's phone
-  at each stop; tmux for the agent still not done (start it at a natural stop).
+  at each stop; the agent **runs in tmux** as `agent` (session `claude`) — a
+  restart is Ctrl-C twice then `claude --continue`, and after every restart J
+  asks the handover question.
 - J merges with `bash ~/LLM/server/merge-gate.sh --merge`: suite, Anoop gate,
   fast-forward, push, collect. The gate has blocked three times and each time
   the block was information (a copy of a paired arrival; a cash misclassified;
@@ -56,6 +69,60 @@ which rows, which pages.
   misread an app-transfer memo, fixed; accepted by J) · redraws 231 /
   $644,921.00 · documents 374 parsed, 20 empty · stated destination 234 ·
   stated source 65.
+- 6 Sep evening: agent switched to Opus 5 / high (Fable's quota out until
+  Wednesday). AnythingLLM moved to the native Lemonade provider; the chat
+  skill's "Connection error" was the skill's token wiped by `cp -r` of the
+  skill folder — answer was in the container log before any reproduction;
+  installer `server/anythingllm-skills/install.sh` preserves settings now.
+  A three-model sweep chain (Qwen3.6, Gemma-4-26B, a third family) runs to
+  ~8 Sep; `compare-sweeps.py` ranks readings two models share against the
+  pipeline. `/ultrareview` uploads the checkout — never from the worktree
+  (untracked `tests/runs/` holds client material); only from a fresh clone.
+- **7 Sep: the audit.** J asked for a file-by-file audit of all 344 tracked
+  files, written as it went, changing nothing. It produced
+  `audits/2026-09-06-review.md` (dated files, never edited again),
+  `docs/audit-instructions.md` (the standing procedure — instruction written
+  down first, every file opened, depth stated, accept briefly / reject in
+  detail, the audit changes nothing, twice weekly minimum), and
+  `docs/self-audit.md` (the running state: 29 rejections in four classes,
+  six recurring classes each with the check that would catch it — eight
+  exist, eleven do not).
+  Mid-audit it found a live exposure: `LLM_Workpapers` world-readable in
+  nine matters, created by the runner's sweep under an inherited umask. J
+  closed it; the repo now states every mode (0750/0640), no pipeline job
+  writes to Workpapers (it is J's only, deprecated once SharePoint carries
+  the pipeline side), and verify-reference fails rather than warns.
+  **The lesson worth keeping:** the first pass accepted 330 files
+  *structurally* — present, registered, has tests — and J picked three at
+  random and asked what exactly had been checked. None had been opened. A
+  slow re-read of the 29 files that produce or protect figures found 14 more
+  rejections in files the structural pass had accepted. Every acceptance now
+  states its depth. **Ask the cheap question about the method, not only the
+  findings.**
+- **7 Sep: fixes in progress**, in J's order. Done: a parser now *sets*
+  `unresolved` (direction/amount/date) rather than writing a sentence
+  unresolved.py had to match — six parsers' notes were escaping the rule (84
+  rows, $223,387, 8 counted); `capacity.py` no longer reads a balance off an
+  unresolved row (NO BALANCE AT DATE / UNRESOLVED); `netbank_export` and
+  `anz_report` — live in the dispatcher with no fixtures — now have full
+  sets, and verify.py reports "parser unproven". Vsay: matched 804 → 789,
+  unresolved 378 → 462, then 431 after three more parser defects (a figure
+  inside a description read as money out — "Includes Bonus Of $1.11" — 28
+  rows; a last entry pending at CLOSING BALANCE dropped; a nil summary side
+  settling a row). Anoop's six gate figures held throughout.
+  Still open: the gates group (an empty gates.json returns PASS and
+  merge-gate greps that word; merge-gate proves the suite in a fresh clone
+  then runs the corpus gate from the worktree; a verified row with only the
+  six decision columns matches any item; the currency guard has never
+  fired), the deleters and sub-agent commands, package/cash, and the claims.
+- **The sweep** (model as second reader over the corpus): pass 1 done on
+  Adams, Vsay, Anoop; pass 2 (Gemma) running; a third family only on
+  disputed documents. Three of its own defects fixed en route — rows keyed
+  by document name (seven Anoop accounts share one name: 14,567 phantom
+  misses), folders keyed by doc_ref (a doc_ref is per *file*, so two bundle
+  copies overwrote each other), and the rename orphaning 590 resume markers.
+  The tell on the first: **the sweep reported more rows than the matter
+  contains** — a figure larger than its own universe.
 - Since 5 Sep: the matter structure is built — `Inputs/{required,to-verify,
   verified}` with forms (xlsx drop-downs, yellow = required, blue = proposed),
   `verified/log.csv`, the two-layer deliverables, the task registry, the
@@ -94,10 +161,12 @@ which rows, which pages.
   $1,593,515. J's report was corrected in four places on pages both had: 9.e,
   9.f (Osko pairs from 5666), 9.h ($35,000 from 5674), and the 276,900 of
   14 Oct 2021 (direction). The $119,961 Chadstone transfer of 13 Sep 2019 was
-  accepted by J. Four cash pairs promoted; eight await J in
-  `Inputs/to-verify/cash-pairs.csv` — the agreed Q3/Q4 figures already contain
-  the 258,703 / 258,700 branch pairs and two small ones, so they need J's
-  promotion or rejection.
+  accepted by J. Eight cash pairs promoted, four await J in
+  `Inputs/to-verify/cash-pairs-to-verify.csv` (files are `<kind>-to-verify.csv`
+  and `<kind>-verified.csv`, same stem, the folder is the state). Since the
+  unresolved-row rule and the 7 Sep parser fixes, Vsay reads 15,872 rows,
+  790 matched, 431 unresolved — the Q3/Q4 figures J agreed will move again
+  when those rows are decided.
 - Vsay cash: $2,731,000 withdrawn in cash from 1172 (Vortex) at Oakleigh on
   12 Oct 2021 and $1,629,782 across three withdrawals on 15 Sep 2021 — for
   J's report, not yet read by J.
@@ -148,6 +217,17 @@ which rows, which pages.
   "17 rows, unchecked" since 1 Sep and nobody read. "Read first" section
   added; rule sent: unresolved rows are never paired or counted, and any
   sheet drawing on them carries a flag.
+
+## What J decides, and the shape of it
+
+J reads pages; the pipeline reads text. Three times now J's reading of one
+page has set off a class fix: the Pure header (`Note 2024 $`), the $41,000
+on Vsay 5666 (opening 191.50 → 41,191.50, both directions provable, yet the
+row was unresolved), and the fourteen "first row of a statement" items that
+turned out to be duplicate OCR copies of statements the bundle also holds as
+text. **When a to-verify list has a pattern — same account, same amount,
+same position — the pattern is usually a defect, not fourteen decisions.**
+Say so before J spends an evening on it.
 
 ## Open, in the auditor's view
 
